@@ -311,6 +311,65 @@ def compute_oracles(df, dep=True):
         print("Oracle F1 and WER by {}:\t {} {}".format(col, ff, wer))
     return
 
+def run_oracles_median(args):
+    with open('rank_exp_sents_split.json', 'r') as f:
+        split_data = json.load(f)
+    dev_sents = split_data['dev']
+
+    add_edit = bool(args.add_edit)
+    if bool(add_edit):
+        add_edit_str = "_unedit.pickle"
+    else:
+        add_edit_str = ".pickle"
+    
+    dev_name = os.path.join(asr_dir, "median_dev_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+    test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+
+    with open(dev_name, 'rb') as f:
+        all_dev_oracle, all_dev_asr = pickle.load(f)
+    oracle_dev = all_dev_oracle[all_dev_oracle.orig_id.isin(dev_sents)]
+    print("DEV")
+    print("0-WER set:")
+    for prefix in ['overall', 'bracket']:
+        m = oracle_dev[prefix+'_match'].sum()
+        t = oracle_dev[prefix+'_test'].sum()
+        g = oracle_dev[prefix+'_gold'].sum()
+        ff = 2 * m / (t + g)
+        print("\t", prefix, ff)
+    dev_mask = all_dev_asr.orig_id.isin(dev_sents)
+    dev_df = all_dev_asr[dev_mask]
+    dev_df = add_f1_scores(dev_df)
+
+    print("ASR set:")
+    print("\tfor dependencies:")
+    compute_oracles(dev_df, dep=True)
+    print("\tfor brackets:")
+    compute_oracles(dev_df, dep=False)
+
+
+    # Test set
+    print("\nTEST")
+    with open(test_name, 'rb') as f:
+        test_oracle, test_asr = pickle.load(f)
+    print("0-WER set:")
+    for prefix in ['overall', 'bracket']:
+        m = test_oracle[prefix+'_match'].sum()
+        t = test_oracle[prefix+'_test'].sum()
+        g = test_oracle[prefix+'_gold'].sum()
+        ff = 2 * m / (t + g)
+        print("\t", prefix, ff)
+    test_df = add_f1_scores(test_asr)
+
+    print("ASR set:")
+    print("\tfor dependencies:")
+    compute_oracles(test_df, dep=True)
+    print("\tfor brackets:")
+    compute_oracles(test_df, dep=False)
+    return 
+
+
 def run_oracles(args):
     with open('rank_exp_sents_split.json', 'r') as f:
         split_data = json.load(f)
@@ -388,11 +447,154 @@ def run_oracles(args):
     compute_oracles(df, dep=True)
     print("\tfor brackets:")
     compute_oracles(df, dep=False)
-
     return
  
 
+def train_medians(args):
+    dep_type = args.dep_type
+    min_model = args.min_model
+    asr_dir = args.asr_dir
+    n = args.nsamples
+    prefix = 'overall' if args.criteria=='dependency' else 'bracket'
+
+    with open('rank_exp_sents_split.json', 'r') as f:
+        split_data = json.load(f)
+    dev_sents = split_data['dev']
+
+    add_edit = bool(args.add_edit)
+    if bool(add_edit):
+        add_edit_str = "_unedit.pickle"
+    else:
+        add_edit_str = ".pickle"
+    
+    dev_name = os.path.join(asr_dir, "median_dev_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+    test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+
+    with open(dev_name, 'rb') as f:
+        all_dev_oracle, all_dev_asr = pickle.load(f)
+    oracle_dev = all_dev_oracle[all_dev_oracle.orig_id.isin(dev_sents)]
+    all_dev_asr = add_f1_scores(all_dev_asr)
+    dev_mask = all_dev_asr.orig_id.isin(dev_sents)
+    dev_df = all_dev_asr[dev_mask]
+    train_df = all_dev_asr[~dev_mask]
+
+    if args.features == 'allold':
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count',
+                 'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl1':    
+        # fl1
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count']
+    elif args.features == 'fl3':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 
+                'depth', 'depth_proxy']
+    elif args.features == 'fl4':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count']
+    elif args.features == 'allnew':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl2':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count']
+    else:
+        print("invalid feature set")
+        exit(1)
+
+    Xtrain, Ytrain, WER_diffs, pair_idx = make_pairs(train_df, 
+            feat_list=feats, n=n, comp_val=prefix)
+
+    clfs = []
+    hypers = [0.0005, 0.0001, 0.005, 0.001, 0.05, 0.01, 0.5, 0.1, 
+            1.0, 5.0, 10.0, 50.0, 100.0]
+    if args.classifier == 'SVC':
+        for C in hypers:
+            clf = SVC(probability=True, C=C, gamma='scale', 
+                    random_state=1, max_iter=300)
+            clf.fit(Xtrain, Ytrain)
+            res_df, dev_f1, dev_wer = get_res(dev_df, clf, feats, prefix)
+            pred_df = pred_by_pair(dev_df, clf, feats)
+            m = pred_df[prefix+'_match'].sum()
+            t = pred_df[prefix+'_test'].sum()
+            g = pred_df[prefix+'_gold'].sum()
+            ff_pred = 2 * m / (t + g)
+            ref = pred_df.orig_sent.values
+            asr = pred_df.asr_sent.values
+            ref = [x.split() for x in ref]
+            asr = [x.split() for x in asr]
+            flat_ref = [item for sublist in ref for item in sublist]
+            flat_asr = [item for sublist in asr for item in sublist]
+            pair_wer = jiwer.wer(flat_ref, flat_asr)
+            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer])
+    else: 
+        for C in hypers:
+            clf = LogisticRegression(random_state=1, C=C, solver='lbfgs')
+            clf.fit(Xtrain, Ytrain)
+            res_df, dev_f1, dev_wer = get_res(dev_df, clf, feats, prefix)
+            pred_df = pred_by_pair(dev_df, clf, feats)
+            m = pred_df[prefix+'_match'].sum()
+            t = pred_df[prefix+'_test'].sum()
+            g = pred_df[prefix+'_gold'].sum()
+            ff_pred = 2 * m / (t + g)
+            ref = pred_df.orig_sent.values
+            asr = pred_df.asr_sent.values
+            ref = [x.split() for x in ref]
+            asr = [x.split() for x in asr]
+            flat_ref = [item for sublist in ref for item in sublist]
+            flat_asr = [item for sublist in asr for item in sublist]
+            pair_wer = jiwer.wer(flat_ref, flat_asr)
+            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer])
+    best_row = sorted(clfs, key=lambda x: x[2])[-1]
+    clf_best, C, f1_best, wer_best, f1_pair_best, wer_pair_best = best_row
+    print("\nBest model:")
+    print(best_row[0])
+    print(best_row[1:])
+    
+    save_name = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+            args.classifier, args.model, args.features, 
+            args.criteria, args.dep_type, args.add_edit, n)
+    #save_name = "/s0/ttmt001/asr_preps_bak/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+    #        args.classifier, args.model, args.features, 
+    #        args.criteria, args.dep_type, args.add_edit, n)
+    with open(save_name, 'wb') as f:
+        pickle.dump(clf_best, f)
+
+    data_ref = [Xtrain, Ytrain, WER_diffs, pair_idx, dev_df]
+    bak_dir = "/s0/ttmt001/asr_preps_bak"
+    save_name = "{}/mediandata_{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+            bak_dir, args.model, args.features, args.classifier, 
+            args.criteria, args.dep_type, args.add_edit, n)
+    with open(save_name, 'wb') as f:
+        pickle.dump(data_ref, f)
+
+    with open(test_name, 'rb') as f:
+        test_oracle, test_df = pickle.load(f)
+    test_df = add_f1_scores(test_df)
+
+    test_res, test_f1, test_wer = get_res(test_df, clf_best, feats, prefix)
+    pair_df = pred_by_pair(test_df, clf_best, feats)
+    m = pair_df[prefix+'_match'].sum()
+    t = pair_df[prefix+'_test'].sum()
+    g = pair_df[prefix+'_gold'].sum()
+    ff_pred = 2 * m / (t + g)
+    ref = pair_df.orig_sent.values
+    asr = pair_df.asr_sent.values
+    ref = [x.split() for x in ref]
+    asr = [x.split() for x in asr]
+    flat_ref = [item for sublist in ref for item in sublist]
+    flat_asr = [item for sublist in asr for item in sublist]
+    pair_wer = jiwer.wer(flat_ref, flat_asr)
+    print("Test set results:")
+    print("Pred F1 & WER:\t", test_f1, test_wer)
+    print("Pred (pair) F1 & WER:\t", ff_pred, pair_wer)
+    return
+
 def analyze(args):
+    dep_type = args.dep_type
+    asr_dir = args.asr_dir
     if bool(args.add_edit):
         filename = os.path.join(args.asr_dir, 
             "{}_{}_bradep_{}_unedit.tsv".format('dev', 
@@ -653,15 +855,12 @@ def get_medians(args):
     odf = pd.DataFrame(oracles)
     odf = odf.reset_index().rename(columns={'index': 'orig_id'})
     adf = pd.concat(asrs)
-
-    outname = os.path.join(asr_dir, "median_{}_{}_{}{}".format(split, dep_type, 
-                min_model, add_edit_str))
+    outname = os.path.join(asr_dir, "median_{}_{}_{}{}".format(split, dep_type,
+        min_model, add_edit_str))
     print(add_edit, outname)
     with open(outname, 'wb') as f:
         pickle.dump([odf, adf], f)
-
     return
-    
 
 def main():
     """main function"""
@@ -695,11 +894,13 @@ def main():
     if args.model_pkl is not None:
         evaluate_model(args)
     elif bool(args.train):
-        analyze(args)
+        #analyze(args)
+        train_medians(args)
     elif bool(args.get_medians):
         get_medians(args)
     else:
-        run_oracles(args)
+        #run_oracles(args)
+        run_oracles_median(args)
     exit(0)
 
 
