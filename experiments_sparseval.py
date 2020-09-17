@@ -554,18 +554,15 @@ def train_medians(args):
     print(best_row[1:])
     
     save_name = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
-            args.classifier, args.model, args.features, 
+            args.classifier, args.min_model, args.features, 
             args.criteria, args.dep_type, args.add_edit, n)
-    #save_name = "/s0/ttmt001/asr_preps_bak/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
-    #        args.classifier, args.model, args.features, 
-    #        args.criteria, args.dep_type, args.add_edit, n)
     with open(save_name, 'wb') as f:
         pickle.dump(clf_best, f)
 
     data_ref = [Xtrain, Ytrain, WER_diffs, pair_idx, dev_df]
     bak_dir = "/s0/ttmt001/asr_preps_bak"
     save_name = "{}/mediandata_{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
-            bak_dir, args.model, args.features, args.classifier, 
+            bak_dir, args.min_model, args.features, args.classifier, 
             args.criteria, args.dep_type, args.add_edit, n)
     with open(save_name, 'wb') as f:
         pickle.dump(data_ref, f)

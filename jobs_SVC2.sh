@@ -35,7 +35,7 @@ do
                         --features $feat \
                         --classifier SVC \
                         --criteria $c \
-                        --min_model $model > logs_medians/LR_${c}_${model}_${feat}_${dep}.log
+                        --min_model $model > logs_medians/SVC_${c}_${model}_${feat}_${dep}.log
                 done
             done
         done
