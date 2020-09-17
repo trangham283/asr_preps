@@ -1,0 +1,288 @@
+1700 labeled addedit: 0
+None
+asr_output/nbest/for_parsing/median_dev_labeled_1700.pickle
+asr_output/nbest/for_parsing/median_test_labeled_1700.pickle
+DEV
+0-WER set:
+	 overall 0.9090308188052549
+	 bracket 0.9228706690686664
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.558761084051455 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.48782620098789176 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.5909950813469542 0.1704386916757092
+Oracle F1 and WER by parse_score:	 0.5049766914451304 0.23073942024492328
+	for brackets:
+Oracle F1 and WER by wer:	 0.7595816033216225 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6044880192705913 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.7899821109123435 0.157184932568594
+Oracle F1 and WER by parse_score:	 0.6595140422846324 0.23073942024492328
+
+TEST
+0-WER set:
+	 overall 0.9120882715309049
+	 bracket 0.9204836770344155
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5439054767494407 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.4672622151158075 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.5781726679582248 0.17263843648208468
+Oracle F1 and WER by parse_score:	 0.4815218843225433 0.24260916175318517
+	for brackets:
+Oracle F1 and WER by wer:	 0.7483672767895506 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5897627965043696 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.7801583406243998 0.16202119325444275
+Oracle F1 and WER by parse_score:	 0.6352610560567963 0.24260916175318517
+
+3700 labeled addedit: 0
+None
+asr_output/nbest/for_parsing/median_dev_labeled_3700.pickle
+asr_output/nbest/for_parsing/median_test_labeled_3700.pickle
+DEV
+0-WER set:
+	 overall 0.9135965636874277
+	 bracket 0.92739301566033
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5603796361819923 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.4878091409595386 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.5925645872715816 0.16950860331731515
+Oracle F1 and WER by parse_score:	 0.507680073661742 0.2236087428305689
+	for brackets:
+Oracle F1 and WER by wer:	 0.765782323797347 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6078547297297298 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.7958219150879702 0.15594481475740196
+Oracle F1 and WER by parse_score:	 0.6670062695924764 0.2236087428305689
+
+TEST
+0-WER set:
+	 overall 0.9126539875827905
+	 bracket 0.92213338179175
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5460400079398336 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.4715611227093482 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.5812889072017996 0.1734218447202408
+Oracle F1 and WER by parse_score:	 0.48707676258753285 0.23997031295097515
+	for brackets:
+Oracle F1 and WER by wer:	 0.7502499113217891 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5921747125393024 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.782279641414303 0.16173256916670103
+Oracle F1 and WER by parse_score:	 0.6405445721368994 0.23997031295097515
+
+1700 unlabeled addedit: 0
+None
+asr_output/nbest/for_parsing/median_dev_unlabeled_1700.pickle
+asr_output/nbest/for_parsing/median_test_unlabeled_1700.pickle
+DEV
+0-WER set:
+	 overall 0.9295216062133356
+	 bracket 0.9311659474632369
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6795720411306774 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.5917733968614766 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.7086687176029332 0.16113780809176872
+Oracle F1 and WER by parse_score:	 0.5943471504766704 0.23073942024492328
+	for brackets:
+Oracle F1 and WER by wer:	 0.7792238901309486 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6348307484258124 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.8152992469282601 0.16385056580375135
+Oracle F1 and WER by parse_score:	 0.6943041969075419 0.23073942024492328
+
+TEST
+0-WER set:
+	 overall 0.9334583555938376
+	 bracket 0.9292633680437397
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6774019332297281 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5828495950502277 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.7093489353624903 0.1624128973735208
+Oracle F1 and WER by parse_score:	 0.57887706487377 0.24260916175318517
+	for brackets:
+Oracle F1 and WER by wer:	 0.7668643121079316 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.619384859834298 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.8040952441640646 0.1696697315795984
+Oracle F1 and WER by parse_score:	 0.6712024848395208 0.24260916175318517
+
+3700 unlabeled addedit: 0
+None
+asr_output/nbest/for_parsing/median_dev_unlabeled_3700.pickle
+asr_output/nbest/for_parsing/median_test_unlabeled_3700.pickle
+DEV
+0-WER set:
+	 overall 0.9337518585825211
+	 bracket 0.936353739217821
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6813470424176831 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.5923271869265053 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.711038140944683 0.16121531545496823
+Oracle F1 and WER by parse_score:	 0.5995898380278742 0.2236087428305689
+	for brackets:
+Oracle F1 and WER by wer:	 0.7847211123541633 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6372466216216216 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.8207360506529482 0.16330801426135483
+Oracle F1 and WER by parse_score:	 0.7029780564263323 0.2236087428305689
+
+TEST
+0-WER set:
+	 overall 0.9333638853426736
+	 bracket 0.9306060330728694
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.678591120619307 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5864300626304801 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.7113601107105789 0.16268090545499525
+Oracle F1 and WER by parse_score:	 0.5847362638582162 0.23997031295097515
+	for brackets:
+Oracle F1 and WER by wer:	 0.7687164769490396 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.6220728952655535 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.806728575218891 0.1688863233414423
+Oracle F1 and WER by parse_score:	 0.6767443326260059 0.23997031295097515
+
+1700 labeled addedit: 1
+None
+asr_output/nbest/for_parsing/median_dev_labeled_1700_unedit.pickle
+asr_output/nbest/for_parsing/median_test_labeled_1700_unedit.pickle
+DEV
+0-WER set:
+	 overall 0.9048984653542087
+	 bracket 0.9243801974042123
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5532867352548496 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.4831293417135296 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.5844397764654592 0.16803596341652458
+Oracle F1 and WER by parse_score:	 0.4994079103181495 0.23073942024492328
+	for brackets:
+Oracle F1 and WER by wer:	 0.7637615537177712 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.609811320754717 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.7930469738703194 0.15648736629979848
+Oracle F1 and WER by parse_score:	 0.6635768410211138 0.23073942024492328
+
+TEST
+0-WER set:
+	 overall 0.9081594788488496
+	 bracket 0.9241043936208617
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5397932546726533 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.46250770993039036 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.5724132116434458 0.17022636374881459
+Oracle F1 and WER by parse_score:	 0.47676177669454134 0.24260916175318517
+	for brackets:
+Oracle F1 and WER by wer:	 0.7507914513143654 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5925607950033268 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.7804246608332664 0.1607842328784068
+Oracle F1 and WER by parse_score:	 0.6374098724348308 0.24260916175318517
+
+3700 labeled addedit: 1
+None
+asr_output/nbest/for_parsing/median_dev_labeled_3700_unedit.pickle
+asr_output/nbest/for_parsing/median_test_labeled_3700_unedit.pickle
+DEV
+0-WER set:
+	 overall 0.9093163850565804
+	 bracket 0.9283772236463916
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5554072096128171 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.4826331458815746 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.586675111832469 0.1663308014261355
+Oracle F1 and WER by parse_score:	 0.5024226905652944 0.2236087428305689
+	for brackets:
+Oracle F1 and WER by wer:	 0.769679955081415 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6130262112787926 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.7977511356020552 0.15416214540381337
+Oracle F1 and WER by parse_score:	 0.6699622834962833 0.2236087428305689
+
+TEST
+0-WER set:
+	 overall 0.909190236661994
+	 bracket 0.9258775423503797
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.5421530750757022 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.46656093047845626 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.5758089839098869 0.16977281161093474
+Oracle F1 and WER by parse_score:	 0.48186772381619825 0.23997031295097515
+	for brackets:
+Oracle F1 and WER by wer:	 0.7535657205284347 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5950923533762851 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.7831469127752421 0.15979466457757804
+Oracle F1 and WER by parse_score:	 0.6440974612102024 0.23997031295097515
+
+1700 unlabeled addedit: 1
+None
+asr_output/nbest/for_parsing/median_dev_unlabeled_1700_unedit.pickle
+asr_output/nbest/for_parsing/median_test_unlabeled_1700_unedit.pickle
+DEV
+0-WER set:
+	 overall 0.9296233142148504
+	 bracket 0.9332400715007383
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6717191549517003 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.5856764803175654 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.7000794281175536 0.15764997674779105
+Oracle F1 and WER by parse_score:	 0.5883792531775479 0.23073942024492328
+	for brackets:
+Oracle F1 and WER by wer:	 0.7829959211166411 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6382522343594836 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.8169265033407572 0.16222291117656176
+Oracle F1 and WER by parse_score:	 0.6977856249540204 0.23073942024492328
+
+TEST
+0-WER set:
+	 overall 0.9339284241774553
+	 bracket 0.931940285829564
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6712331627858411 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.5776279848444796 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.7019263264616424 0.15967096853997442
+Oracle F1 and WER by parse_score:	 0.5749043997142497 0.24260916175318517
+	for brackets:
+Oracle F1 and WER by wer:	 0.7683298101528285 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.6201626923654783 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.8034536515169685 0.167855523028079
+Oracle F1 and WER by parse_score:	 0.6719950875524919 0.24260916175318517
+
+3700 unlabeled addedit: 1
+None
+asr_output/nbest/for_parsing/median_dev_unlabeled_3700_unedit.pickle
+asr_output/nbest/for_parsing/median_test_unlabeled_3700_unedit.pickle
+DEV
+0-WER set:
+	 overall 0.9334986823748256
+	 bracket 0.9382428338382661
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6738396293096678 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.5851802844856103 0.24476825298403349
+Oracle F1 and WER by overall_f1:	 0.7024088257470534 0.1587350798325841
+Oracle F1 and WER by parse_score:	 0.5941303919637582 0.2236087428305689
+	for brackets:
+Oracle F1 and WER by wer:	 0.7880217106494479 0.11626104479925593
+Oracle F1 and WER by asr_norm:	 0.6406671961874504 0.24476825298403349
+Oracle F1 and WER by bracket_f1:	 0.8222197484136703 0.16098279336536972
+Oracle F1 and WER by parse_score:	 0.7057746530447838 0.2236087428305689
+
+TEST
+0-WER set:
+	 overall 0.9338459635524037
+	 bracket 0.9333758164728373
+ASR set:
+	for dependencies:
+Oracle F1 and WER by wer:	 0.6724026313041662 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.58055775839281 0.2502577000783408
+Oracle F1 and WER by overall_f1:	 0.7039050705742006 0.15936172844596544
+Oracle F1 and WER by parse_score:	 0.5800863989623757 0.23997031295097515
+	for brackets:
+Oracle F1 and WER by wer:	 0.7711869550264016 0.11507854698387829
+Oracle F1 and WER by asr_norm:	 0.6230288477000097 0.2502577000783408
+Oracle F1 and WER by bracket_f1:	 0.8068408854791017 0.16703088277738837
+Oracle F1 and WER by parse_score:	 0.6794949951820023 0.23997031295097515
+
