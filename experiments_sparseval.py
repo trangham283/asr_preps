@@ -312,12 +312,16 @@ def compute_oracles(df, dep=True):
     return
 
 def run_oracles_median(args):
+    min_model = args.min_model
+    split = args.split
+    dep_type = args.dep_type
+    asr_dir = args.asr_dir
     with open('rank_exp_sents_split.json', 'r') as f:
         split_data = json.load(f)
     dev_sents = split_data['dev']
 
     add_edit = bool(args.add_edit)
-    if bool(add_edit):
+    if add_edit:
         add_edit_str = "_unedit.pickle"
     else:
         add_edit_str = ".pickle"
@@ -326,6 +330,8 @@ def run_oracles_median(args):
         min_model, add_edit_str))
     test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
         min_model, add_edit_str))
+    print(dev_name)
+    print(test_name)
 
     with open(dev_name, 'rb') as f:
         all_dev_oracle, all_dev_asr = pickle.load(f)
@@ -812,7 +818,7 @@ def get_medians(args):
         else:
             temp = read_raw_scores(split, model)
             this_df = pd.merge(this_df, temp, on='orig_id')
-        if bool(add_edit):
+        if add_edit:
             filename = os.path.join(asr_dir, 
                 "{}_{}_bradep_{}_unedit.tsv".format(split, 
                 dep_type, model))

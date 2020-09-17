@@ -9,18 +9,21 @@ columns = ['sent_num',
 'open_match', 'open_gold', 'open_test']
 
 
-
-def collect_results(data_dir, split, model, dep_type, unedit=True):
+def collect_results(data_dir, split, model, dep_type, unedit):
     list_row = []
     if unedit:
         prefix = os.path.join(data_dir, 
-                "{}_{}_bradep_{}_unedit_*.log".format(split, dep_type, model))
+                "{}_{}_bradep_{}_unedit_".format(split, dep_type, model))
     else:
         prefix = os.path.join(data_dir, 
-                "{}_{}_bradep_{}_*.log".format(split, dep_type, model))
-    files = glob.glob(prefix)
-    for filename in files:
-        sent_num = int(filename.split("_")[-1][:-4]) + 1
+                "{}_{}_bradep_{}_".format(split, dep_type, model))
+    if split == 'dev':
+        files = range(44422 + 1)
+    elif split == 'test':
+        files = range(44237 + 1)
+    for num in files:
+        filename = prefix + str(num) + ".log"
+        sent_num = num + 1
         ll = open(filename).readlines()
         scores = ll[4].split()
         scores = [int(x) for x in scores]
@@ -59,7 +62,7 @@ def main():
     else:
         outname = os.path.join(out_dir, "{}_{}_bradep_{}.tsv".format(split, dep_type, model))
 
-    df = collect_results(data_dir, split, model, dep_type)
+    df = collect_results(data_dir+"_"+split, split, model, dep_type, unedit)
     df.to_csv(outname, sep="\t", index=False)
 
     exit(0)
