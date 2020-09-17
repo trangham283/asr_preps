@@ -62,7 +62,7 @@ def main():
     else:
         outname = os.path.join(out_dir, "{}_{}_bradep_{}.tsv".format(split, dep_type, model))
 
-    df = collect_results(data_dir+"_"+split, split, model, dep_type, unedit)
+    df = collect_results(data_dir, split, model, dep_type, unedit)
     df.to_csv(outname, sep="\t", index=False)
 
     exit(0)

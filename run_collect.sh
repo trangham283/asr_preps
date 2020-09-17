@@ -2,9 +2,9 @@
 
 source /homes/ttmt001/transitory/envs/py3.6-transformers-cpu/bin/activate
 
-SPLIT=test
+SPLIT=dev
 
-for MODEL in 1700 1701 1702 1703 3700 3701 3702 3703
+for MODEL in 1700 1701 1702 1703 1704 3700 3701 3702 3703 3704
 do
     for DEP in unlabeled labeled 
     do
