@@ -468,7 +468,7 @@ def train_medians(args):
     dev_sents = split_data['dev']
 
     add_edit = bool(args.add_edit)
-    if bool(add_edit):
+    if add_edit:
         add_edit_str = "_unedit.pickle"
     else:
         add_edit_str = ".pickle"
@@ -477,6 +477,8 @@ def train_medians(args):
         min_model, add_edit_str))
     test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
         min_model, add_edit_str))
+    print(dev_name)
+    print(test_name)
 
     with open(dev_name, 'rb') as f:
         all_dev_oracle, all_dev_asr = pickle.load(f)
@@ -595,7 +597,76 @@ def train_medians(args):
     print("Pred (pair) F1 & WER:\t", ff_pred, pair_wer)
     return
 
+
 def analyze(args):
+    dep_type = args.dep_type
+    min_model = args.min_model
+    asr_dir = args.asr_dir
+    add_edit = bool(args.add_edit)
+    prefix = 'overall' if args.criteria=='dependency' else 'bracket'
+
+    model_pkl = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+            args.classifier, args.min_model, args.features, 
+            args.criteria, args.dep_type, args.add_edit, args.nsamples)
+    print("Loading model:", model_pkl)
+    if 'fl1' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count']
+    elif 'fl2' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count']
+    elif 'fl3' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 
+                'depth', 'depth_proxy']
+    elif 'fl4' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count']
+    elif 'allnew' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif 'allold' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count',
+                 'np_count', 'vp_count', 'pp_count'] 
+    else:
+        print("invalid feature set")
+        exit(1)
+    
+    with open(model_pkl, 'rb') as f:
+        clf_best = pickle.load(f)
+
+    if add_edit:
+        add_edit_str = "_unedit.pickle"
+    else:
+        add_edit_str = ".pickle"
+    
+    test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+    print("Analyzing: ", test_name)
+    with open(test_name, 'rb') as f:
+        test_oracle, test_df = pickle.load(f)
+    test_df = add_f1_scores(test_df)
+
+    test_res, test_f1, test_wer = get_res(test_df, clf_best, feats, prefix)
+    pair_df = pred_by_pair(test_df, clf_best, feats)
+    m = pair_df[prefix+'_match'].sum()
+    t = pair_df[prefix+'_test'].sum()
+    g = pair_df[prefix+'_gold'].sum()
+    ff_pred = 2 * m / (t + g)
+    ref = pair_df.orig_sent.values
+    asr = pair_df.asr_sent.values
+    ref = [x.split() for x in ref]
+    asr = [x.split() for x in asr]
+    flat_ref = [item for sublist in ref for item in sublist]
+    flat_asr = [item for sublist in asr for item in sublist]
+    pair_wer = jiwer.wer(flat_ref, flat_asr)
+    print("Test set results:")
+    print("Pred F1 & WER:\t", test_f1, test_wer)
+    print("Pred (pair) F1 & WER:\t", ff_pred, pair_wer)
+    code.interact(local=locals())
+    return
+
+def train_single(args):
     dep_type = args.dep_type
     asr_dir = args.asr_dir
     if bool(args.add_edit):
@@ -888,6 +959,7 @@ def main():
     pa.add_argument('--criteria', help='tune by dependency or bracket score', 
             default='dependency')
     pa.add_argument('--get_medians', help='get_medians', default=0, type=int)
+    pa.add_argument('--analyze', help='analyze', default=0, type=int)
     pa.add_argument('--min_model', help='min model in set', type=int,
             default=1700)
     pa.add_argument('--split', help='split', default='dev')
@@ -897,10 +969,12 @@ def main():
     if args.model_pkl is not None:
         evaluate_model(args)
     elif bool(args.train):
-        #analyze(args)
+        #train_single(args)
         train_medians(args)
     elif bool(args.get_medians):
         get_medians(args)
+    elif bool(args.analyze):
+        analyze(args)
     else:
         #run_oracles(args)
         run_oracles_median(args)

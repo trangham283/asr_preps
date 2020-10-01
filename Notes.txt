@@ -8,9 +8,12 @@ python get_utterance_times.py --split {dev,test} --step split --task {da,parse}
 # Write commands to trim on uttereance level
 python get_utterance_times.py --split {dev,test} --step trim --task {da,parse}
 
+# Write commands to trim on turn level (da only)
+python get_utterance_times.py --split {dev,test} --step turns --task da
+
 # Run the corresponding commands cmd* 
 
-# Run kaldi decoding scripts:
+# Run kaldi decoding scripts (from the downloaded repo):
 ./decode_audio_$task_$split
 
 NOTE: 3942_B_0126 is too short, kaldi could not extract acoustic frames from it, so skip

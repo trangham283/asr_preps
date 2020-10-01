@@ -154,6 +154,53 @@ def get_end_time(times):
         return time_list[-1]
     return None
 
+# For da set only
+def write_cmd_trim_turns(split, cmd):
+    out_dir = '/s0/ttmt001/utterances/da/' + split + '/'
+    err = open(split + '_err_sents.txt', 'w')
+    checks = []
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
+        
+    align_file = sw_dir + '/joint_da_seg/{}_aligned_dialogs.tsv'.format(split)
+    align_df = pd.read_csv(align_file, sep="\t")
+    files = set(align_df.filenum)
+    file_column = 'filenum'
+    sp_column = 'true_speaker'
+
+    fout = open(cmd, 'w')
+    fout.write("#!/bin/bash\n")
+
+    for filenum in files:
+        oname = 'sw0' + str(filenum)
+        for speaker in ['A', 'B']:
+            wav_in = wav_dir + oname + '_' + speaker + '.wav'
+            side_df = align_df[(align_df[file_column]==filenum) & (align_df[sp_column]==speaker)]
+            for i, row in side_df.iterrows():
+                start_time = row.start_time
+                end_time = row.end_time
+                sent_id = '{}_{}_{}'.format(row.filenum, speaker, str(row.turn_id).zfill(4))
+                if start_time < 0 or end_time < 0 or start_time >= end_time:
+                    err.write(sent_id + "\n")
+                    print(i, sent_id, start_time, end_time)
+                    continue
+                utt_dur = end_time - start_time
+                if utt_dur < threshold:
+                    end_time = start_time + threshold
+                    utt_dur = end_time - start_time
+                checks.append(utt_dur)
+                wav_out = out_dir + sent_id + '.wav'
+                #fout.write('''echo "{}"\n'''.format(wav_out))
+                item = "sox {} {} trim {} ={}\n".format(wav_in, wav_out, start_time, end_time)
+                fout.write(item)
+
+    fout.close()
+    err.close()
+    print("Stats on utterance durations:")
+    print(min(checks), max(checks), np.mean(checks))
+    return
+
 def write_cmd_trim(task, split, cmd):
     out_dir = '/s0/ttmt001/utterances/' + task + '/' + split + '/'
     err = open(split + '_err_sents.txt', 'w')
@@ -266,6 +313,8 @@ def main():
         write_cmd_split(task, split, cmd)
     elif step == 'trim':
         write_cmd_trim(task, split, cmd)
+    elif step == 'turns':
+        write_cmd_trim_turns(split, cmd)
     else:
         print("Need to specify step")
     exit(0)
