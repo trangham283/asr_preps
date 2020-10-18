@@ -8,6 +8,7 @@ import numpy as np
 import json
 import jiwer
 from sklearn.linear_model import Ridge
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_squared_error
@@ -121,13 +122,93 @@ def get_features(asr_dir, split, model, dep_type, df, tsv_df):
             Tree.fromstring(x).height())
     return merge_df
 
-def make_pairs(df, feat_list, n=5, comp_val='overall'):
+def make_pairs_old(df, feat_list, n=5, comp_val='overall'):
     comp_val = comp_val + '_f1'
     pair_idx = {}
     X, Y, WER_diffs = [], [], []
     for orig_id, sent_df in df.groupby('orig_id'):
         pair_idx[orig_id] = []
         if len(sent_df) < 2:
+            #print(orig_id)
+            continue
+        min_loc = sent_df[comp_val].idxmin()
+        max_loc = sent_df[comp_val].idxmax()
+        # always include the biggest difference:
+        y = 1
+        wer_delta = sent_df.loc[max_loc].wer - sent_df.loc[min_loc].wer
+        x = []
+        pair_idx[orig_id].append((max_loc, min_loc))
+        for feat in feat_list:
+            featval = sent_df.loc[max_loc][feat] - sent_df.loc[min_loc][feat]
+            x.append(featval)
+        Y.append(y)
+        X.append(x)
+        WER_diffs.append(wer_delta)
+        
+        # sample and compare with min, max
+        for _ in range(n):
+            sample_row = sent_df.sample(1)
+            idx = sample_row.index.values[0]
+            pair_idx[orig_id].append((max_loc, idx))
+            sample_f1 = sample_row[comp_val].values[0] 
+            
+            diff = sent_df.loc[max_loc][comp_val] - sample_f1
+            wer_delta = sent_df.loc[max_loc].wer - sample_row.wer.values[0]
+            x = []
+            for feat in feat_list:
+                featval = sent_df.loc[max_loc][feat]-sample_row[feat].values[0]
+                x.append(featval)
+            if diff > 0:
+                y = 1
+            else:
+                y = 0
+            Y.append(y)
+            X.append(x)
+            WER_diffs.append(wer_delta)
+            
+            diff = sent_df.loc[min_loc][comp_val] - sample_f1
+            wer_delta = sent_df.loc[min_loc].wer - sample_row.wer.values[0]
+            pair_idx[orig_id].append((min_loc, idx))
+            x = []
+            for feat in feat_list:
+                featval = sent_df.loc[min_loc][feat]-sample_row[feat].values[0]
+                x.append(featval)
+            
+            if diff > 0:
+                y = 1
+            else:
+                y = 0
+            Y.append(y)
+            X.append(x)
+            WER_diffs.append(wer_delta)
+        
+        # sample random pair
+        for _ in range(n):
+            pair_df = sent_df.sample(2)
+            idx = pair_df.index.values
+            pair_idx[orig_id].append((idx[0], idx[1]))
+            diff = pair_df[comp_val].values[0] - pair_df[comp_val].values[1]
+            wer_delta = pair_df.wer.values[0] - pair_df.wer.values[1]
+            x = []
+            for feat in feat_list:
+                featval = pair_df[feat].values[0] -  pair_df[feat].values[1]
+                x.append(featval)
+            if diff > 0:
+                y = 1
+            else:
+                y = 0
+            Y.append(y)
+            X.append(x)
+            WER_diffs.append(wer_delta)
+    return np.array(X), Y, WER_diffs, pair_idx
+
+def make_pairs(df, feat_list, n=5, comp_val='overall'):
+    comp_val = comp_val + '_f1'
+    pair_idx = {}
+    X, Y, WER_diffs = [], [], []
+    for orig_id, sent_df in df.groupby('orig_id'):
+        pair_idx[orig_id] = []
+        if len(sent_df) < 8:
             #print(orig_id)
             continue
         min_loc = sent_df[comp_val].idxmin()
@@ -292,7 +373,8 @@ def compute_oracles(df, dep=True):
         prefix = 'overall'
     else:
         prefix = 'bracket'
-    for col in ['wer', 'asr_norm', prefix+'_f1', 'parse_score']:
+    #for col in ['wer', 'asr_score', prefix+'_f1', 'parse_score']:
+    for col in ['asr_score', prefix+'_f1']:
         if col == 'wer':
             idxf1 = df.groupby('orig_id')[col].idxmin()
         else:
@@ -455,6 +537,132 @@ def run_oracles(args):
     compute_oracles(df, dep=False)
     return
  
+def train_medians_dt(args):
+    dep_type = args.dep_type
+    min_model = args.min_model
+    asr_dir = args.asr_dir
+    n = args.nsamples
+    prefix = 'overall' if args.criteria=='dependency' else 'bracket'
+
+    with open('rank_exp_sents_split.json', 'r') as f:
+        split_data = json.load(f)
+    dev_sents = split_data['dev']
+
+    add_edit = bool(args.add_edit)
+    if add_edit:
+        add_edit_str = "_unedit.pickle"
+    else:
+        add_edit_str = ".pickle"
+    
+    dev_name = os.path.join(asr_dir, "median_dev_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+    test_name = os.path.join(asr_dir, "median_test_{}_{}{}".format(dep_type,
+        min_model, add_edit_str))
+    print(dev_name)
+    print(test_name)
+
+    with open(dev_name, 'rb') as f:
+        all_dev_oracle, all_dev_asr = pickle.load(f)
+    oracle_dev = all_dev_oracle[all_dev_oracle.orig_id.isin(dev_sents)]
+    all_dev_asr = add_f1_scores(all_dev_asr)
+    dev_mask = all_dev_asr.orig_id.isin(dev_sents)
+    dev_df = all_dev_asr[dev_mask]
+    train_df = all_dev_asr[~dev_mask]
+
+    if args.features == 'allold':
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count',
+                 'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl1':    
+        # fl1
+        feats = ['parse_score', 'asr_score', 'asr_len', 
+                 'edit_count', 'depth_proxy', 'intj_count']
+    elif args.features == 'fl3':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 
+                'depth', 'depth_proxy']
+    elif args.features == 'fl4':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count']
+    elif args.features == 'fl5':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 'depth']
+    elif args.features == 'allnew':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl6':
+        feats = ['parse_score', 'asr_score', 'pscores_raw', 'asr_norm',
+                'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl2':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count']
+    else:
+        print("invalid feature set")
+        exit(1)
+
+    Xtrain, Ytrain, WER_diffs, pair_idx = make_pairs(train_df, 
+            feat_list=feats, n=n, comp_val=prefix)
+
+    clfs = []
+    hypers = [5, 10, 15, 20, 25]
+    for C in hypers:
+        clf = DecisionTreeClassifier(random_state=1, max_depth=C)
+        clf.fit(Xtrain, Ytrain)
+        res_df, dev_f1, dev_wer = get_res(dev_df, clf, feats, prefix)
+        pred_df = pred_by_pair(dev_df, clf, feats)
+        m = pred_df[prefix+'_match'].sum()
+        t = pred_df[prefix+'_test'].sum()
+        g = pred_df[prefix+'_gold'].sum()
+        ff_pred = 2 * m / (t + g)
+        ref = pred_df.orig_sent.values
+        asr = pred_df.asr_sent.values
+        ref = [x.split() for x in ref]
+        asr = [x.split() for x in asr]
+        flat_ref = [item for sublist in ref for item in sublist]
+        flat_asr = [item for sublist in asr for item in sublist]
+        pair_wer = jiwer.wer(flat_ref, flat_asr)
+        clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer, max(dev_f1, ff_pred)])
+    best_row = sorted(clfs, key=lambda x: x[-1])[-1]
+    clf_best, C, f1_best, wer_best, f1_pair_best, wer_pair_best, _ = best_row
+    print("\nBest model:")
+    print(best_row[0])
+    print(best_row[1:])
+    
+    save_name = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_lim8.pkl".format(
+            args.classifier, args.min_model, args.features, 
+            args.criteria, args.dep_type, args.add_edit)
+    with open(save_name, 'wb') as f:
+        pickle.dump(clf_best, f)
+
+    data_ref = [Xtrain, Ytrain, WER_diffs, pair_idx, dev_df]
+    bak_dir = "/s0/ttmt001/asr_preps_bak"
+    save_name = "{}/mediandata_{}_{}_{}_{}_dep-{}_edit-{}_lim8.pkl".format(
+            bak_dir, args.min_model, args.features, args.classifier, 
+            args.criteria, args.dep_type, args.add_edit)
+    with open(save_name, 'wb') as f:
+        pickle.dump(data_ref, f)
+
+    with open(test_name, 'rb') as f:
+        test_oracle, test_df = pickle.load(f)
+    test_df = add_f1_scores(test_df)
+
+    test_res, test_f1, test_wer = get_res(test_df, clf_best, feats, prefix)
+    pair_df = pred_by_pair(test_df, clf_best, feats)
+    m = pair_df[prefix+'_match'].sum()
+    t = pair_df[prefix+'_test'].sum()
+    g = pair_df[prefix+'_gold'].sum()
+    ff_pred = 2 * m / (t + g)
+    ref = pair_df.orig_sent.values
+    asr = pair_df.asr_sent.values
+    ref = [x.split() for x in ref]
+    asr = [x.split() for x in asr]
+    flat_ref = [item for sublist in ref for item in sublist]
+    flat_asr = [item for sublist in asr for item in sublist]
+    pair_wer = jiwer.wer(flat_ref, flat_asr)
+    print("Test set results:")
+    print("Pred F1 & WER:\t", test_f1, test_wer)
+    print("Pred (pair) F1 & WER:\t", ff_pred, pair_wer)
+    return
 
 def train_medians(args):
     dep_type = args.dep_type
@@ -502,8 +710,15 @@ def train_medians(args):
     elif args.features == 'fl4':
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count']
+    elif args.features == 'fl5':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 'depth']
     elif args.features == 'allnew':
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif args.features == 'fl6':
+        feats = ['parse_score', 'asr_score', 'pscores_raw', 'asr_norm',
+                'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count',  
                 'np_count', 'vp_count', 'pp_count']
     elif args.features == 'fl2':
@@ -521,7 +736,7 @@ def train_medians(args):
     if args.classifier == 'SVC':
         for C in hypers:
             clf = SVC(probability=True, C=C, gamma='scale', 
-                    random_state=1, max_iter=300)
+                    random_state=1, max_iter=400)
             clf.fit(Xtrain, Ytrain)
             res_df, dev_f1, dev_wer = get_res(dev_df, clf, feats, prefix)
             pred_df = pred_by_pair(dev_df, clf, feats)
@@ -536,7 +751,7 @@ def train_medians(args):
             flat_ref = [item for sublist in ref for item in sublist]
             flat_asr = [item for sublist in asr for item in sublist]
             pair_wer = jiwer.wer(flat_ref, flat_asr)
-            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer])
+            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer, max(dev_f1, ff_pred)])
     else: 
         for C in hypers:
             clf = LogisticRegression(random_state=1, C=C, solver='lbfgs')
@@ -554,24 +769,24 @@ def train_medians(args):
             flat_ref = [item for sublist in ref for item in sublist]
             flat_asr = [item for sublist in asr for item in sublist]
             pair_wer = jiwer.wer(flat_ref, flat_asr)
-            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer])
-    best_row = sorted(clfs, key=lambda x: x[2])[-1]
-    clf_best, C, f1_best, wer_best, f1_pair_best, wer_pair_best = best_row
+            clfs.append([clf, C, dev_f1, dev_wer, ff_pred, pair_wer, max(dev_f1, ff_pred)])
+    best_row = sorted(clfs, key=lambda x: x[-1])[-1]
+    clf_best, C, f1_best, wer_best, f1_pair_best, wer_pair_best, _ = best_row
     print("\nBest model:")
     print(best_row[0])
     print(best_row[1:])
     
-    save_name = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+    save_name = "exp_medians/{}_{}_{}_{}_dep-{}_edit-{}_lim8.pkl".format(
             args.classifier, args.min_model, args.features, 
-            args.criteria, args.dep_type, args.add_edit, n)
+            args.criteria, args.dep_type, args.add_edit)
     with open(save_name, 'wb') as f:
         pickle.dump(clf_best, f)
 
     data_ref = [Xtrain, Ytrain, WER_diffs, pair_idx, dev_df]
     bak_dir = "/s0/ttmt001/asr_preps_bak"
-    save_name = "{}/mediandata_{}_{}_{}_{}_dep-{}_edit-{}_{}_spls.pkl".format(
+    save_name = "{}/mediandata_{}_{}_{}_{}_dep-{}_edit-{}_lim8.pkl".format(
             bak_dir, args.min_model, args.features, args.classifier, 
-            args.criteria, args.dep_type, args.add_edit, n)
+            args.criteria, args.dep_type, args.add_edit)
     with open(save_name, 'wb') as f:
         pickle.dump(data_ref, f)
 
@@ -620,8 +835,15 @@ def analyze(args):
     elif 'fl4' in model_pkl:
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count']
+    elif 'fl5' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 'depth']
     elif 'allnew' in model_pkl:
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
+    elif 'fl6' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'pscores_raw', 'asr_norm',
+                'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count',  
                 'np_count', 'vp_count', 'pp_count']
     elif 'allold' in model_pkl:
@@ -704,6 +926,13 @@ def train_single(args):
     elif args.features == 'fl4':
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count']
+    elif args.features == 'fl5':
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 'depth']
+    elif args.features == 'fl6':
+        feats = ['parse_score', 'asr_score', 'pscores_raw', 'asr_norm',
+                'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
     elif args.features == 'allnew':
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count',  
@@ -821,6 +1050,13 @@ def evaluate_model(args):
     elif 'fl4' in model_pkl:
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count']
+    elif 'fl5' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count', 'depth']
+    elif 'fl6' in model_pkl:
+        feats = ['parse_score', 'asr_score', 'pscores_raw', 'asr_norm',
+                'asr_len', 'edit_count',
+                'depth', 'depth_proxy', 'intj_count',  
+                'np_count', 'vp_count', 'pp_count']
     elif 'allnew' in model_pkl:
         feats = ['parse_score', 'asr_score', 'asr_len', 'edit_count',
                 'depth', 'depth_proxy', 'intj_count',  
@@ -970,7 +1206,10 @@ def main():
         evaluate_model(args)
     elif bool(args.train):
         #train_single(args)
-        train_medians(args)
+        if args.classifier == 'DT':
+            train_medians_dt(args)
+        else:
+            train_medians(args)
     elif bool(args.get_medians):
         get_medians(args)
     elif bool(args.analyze):
