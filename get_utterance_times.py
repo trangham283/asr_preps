@@ -155,6 +155,39 @@ def get_end_time(times):
     return None
 
 # For da set only
+def write_da_df(split):
+    filename = os.path.join(sw_dir,'joint_da_seg', split + "_bert_time_data.json")
+    with open(filename, 'r') as f:
+        sessions = json.load(f)
+
+    dialog_keys = list(sessions.keys())
+    
+    list_row = []
+    for filenum in dialog_keys:
+        sess = sessions[filenum]
+        for turn in sess:
+            speaker = turn['speaker']
+            start_times = turn['start_times']
+            start_time = max(0, start_times[0] - 0.03) # extra 3 frames to avoid noisy cut-off 
+            end_times = turn['end_times']
+            end_time = end_times[-1] + 0.03
+            turn_id = turn['turn_id']
+            words = turn['da_turn']
+            da_labels = turn['joint_labels']
+            sent_id = '{}_{}_{}'.format(filenum, speaker, str(turn_id).zfill(4))
+            list_row.append({
+                'sent_id': sent_id,
+                'start_time': start_time,
+                'end_time': end_time,
+                'da_labels': da_labels,
+                'tokens': words
+                })
+
+    df = pd.DataFrame(list_row)
+    outname = split + "_reference.tsv"
+    df.to_csv(outname, sep="\t", index=False)
+    return
+
 def write_da_trim_turns(split, cmd):
     out_dir = '/s0/ttmt001/utterances/da/' + split + '/'
     err = open(split + '_err_sents.txt', 'w')
@@ -365,6 +398,8 @@ def main():
     elif step == 'turns':
         #write_cmd_trim_turns(split, cmd)
         write_da_trim_turns(split, cmd)
+    elif step == 'write_df':
+        write_da_df(split)
     else:
         print("Need to specify step")
     exit(0)
