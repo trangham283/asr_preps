@@ -18,16 +18,18 @@ source /homes/ttmt001/transitory/envs/py3.6-transformers-cpu/bin/activate
 #    done
 #done
 
+ae=1
+feat=allnew
 for c in dependency bracket
 do
     for model in 1700 3700
     do
-        for feat in allnew allold
-        do
+#        for feat in allnew allold 
+#        do
             for dep in labeled unlabeled
             do
-                for ae in 0 1
-                do
+#                for ae in 0 1
+#                do
                     python experiments_sparseval.py \
                         --dep_type $dep \
                         --add_edit $ae \
@@ -35,10 +37,10 @@ do
                         --features $feat \
                         --classifier SVC \
                         --criteria $c \
-                        --min_model $model > logs_medians/SVC_${c}_${model}_${feat}_${dep}_edit${ae}.log
-                done
+                        --min_model $model > logs_lim8/SVC_${c}_${model}_${feat}_${dep}_edit${ae}.log
+#                done
             done
-        done
+#        done
     done
 done
 

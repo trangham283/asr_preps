@@ -125,16 +125,27 @@ def process_pa(asr_dir, split):
     return
 
 # FIXME
+# columns needed:
+# filenum   true_speaker  da_token sent_id turn_id  start_time  end_time
+# REF: dev_aligned.tsv
 def process_da(asr_dir, split):
-    raw_df = make_df(asr_dir, 'da', split)
-    asr_df = make_utt_df(raw_df)
-    da_file = sw_dir + 'swda/data/swda_tsv/{}_aligned_merged.tsv'.format(split)
+    raw_df, acs, lms = make_df(asr_dir, 'da', split)
+    raw_df = raw_df[~raw_df.word.isin(SKIP)]
+    raw_df['da_token'] = raw_df['word'] 
+    # different form parsing since BERT will do the tokenization
+    asr_df = raw_df.reset_index(drop=True)
+    da_file = split + '_reference.tsv'
     da_df = pd.read_csv(da_file, sep="\t")
-    da_df['sent_id'] = da_df.apply(lambda row: "{}_{}_{}".format(row.filenum, row.true_speaker, str(row.turn_id).zfill(4)), axis=1)
-    merged_df = pd.merge(asr_df, da_df, on='sent_id', how='inner')
-    #outname = out_dir + 'swda/data/swda_tsv/{}_aligned_asr.tsv'.format(split)
-    outname = out_dir + '{}_aligned_asr_nbest.tsv'.format(split)
-    merged_df.to_csv(outname, sep="\t", index=False)
+    offsets = dict(zip(da_df.sent_id, da_df.start_time))
+    asr_df['start_time'] = asr_df.apply(
+        lambda row: row.start_time + offsets[row.orig_id], axis=1)
+    asr_df['end_time'] = asr_df.apply(
+        lambda row: row.end_time + offsets[row.orig_id], axis=1)
+    asr_df.turn_id = 
+
+    outname = out_dir + '{}_asr.tsv'.format(split)
+    asr_df.to_csv(outname, sep="\t", index=False)
+
     return
 
 def main():
