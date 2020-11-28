@@ -1,5 +1,6 @@
 #!/user/bin/env python2
 
+# FOR PARSING
 
 # BASED ON:
 # /homes/ttmt001/transitory/seq2seq_parser/speech_parsing/enc_dec_parser/get_features.py

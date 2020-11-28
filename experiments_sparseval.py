@@ -374,7 +374,7 @@ def compute_oracles(df, dep=True):
     else:
         prefix = 'bracket'
     #for col in ['wer', 'asr_score', prefix+'_f1', 'parse_score']:
-    for col in ['asr_score', prefix+'_f1']:
+    for col in ['asr_score']:
         if col == 'wer':
             idxf1 = df.groupby('orig_id')[col].idxmin()
         else:
@@ -383,6 +383,9 @@ def compute_oracles(df, dep=True):
         t = df.loc[idxf1][prefix+'_test'].sum()
         g = df.loc[idxf1][prefix+'_gold'].sum()
         ff = 2 * m / (t + g)
+        print(m, t, g, ff)
+    return m, t, g, ff
+
         ref = df.loc[idxf1].orig_sent.values
         asr = df.loc[idxf1].asr_sent.values
         ref = [x.split() for x in ref]
@@ -395,9 +398,8 @@ def compute_oracles(df, dep=True):
 
 def run_oracles_median(args):
     min_model = args.min_model
-    split = args.split
-    dep_type = args.dep_type
     asr_dir = args.asr_dir
+    dep_type = args.dep_type
     with open('rank_exp_sents_split.json', 'r') as f:
         split_data = json.load(f)
     dev_sents = split_data['dev']
@@ -428,7 +430,7 @@ def run_oracles_median(args):
         print("\t", prefix, ff)
     dev_mask = all_dev_asr.orig_id.isin(dev_sents)
     dev_df = all_dev_asr[dev_mask]
-    dev_df = add_f1_scores(dev_df)
+    #dev_df = add_f1_scores(dev_df)
 
     print("ASR set:")
     print("\tfor dependencies:")
@@ -448,7 +450,8 @@ def run_oracles_median(args):
         g = test_oracle[prefix+'_gold'].sum()
         ff = 2 * m / (t + g)
         print("\t", prefix, ff)
-    test_df = add_f1_scores(test_asr)
+    test_df = test_asr
+    #test_df = add_f1_scores(test_asr)
 
     print("ASR set:")
     print("\tfor dependencies:")

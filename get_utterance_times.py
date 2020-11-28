@@ -155,6 +155,55 @@ def get_end_time(times):
     return None
 
 # For da set only
+def write_da_trim_turns(split, cmd):
+    out_dir = '/s0/ttmt001/utterances/da/' + split + '/'
+    err = open(split + '_err_sents.txt', 'w')
+    checks = []
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
+        
+    filename = os.path.join(sw_dir,'joint_da_seg', split + "_bert_time_data.json")
+    with open(filename, 'r') as f:
+        sessions = json.load(f)
+
+    dialog_keys = list(sessions.keys())
+        
+    fout = open(cmd, 'w')
+    fout.write("#!/bin/bash\n")
+
+    for filenum in dialog_keys:
+        oname = 'sw0' + filenum
+        sess = sessions[filenum]
+        for turn in sess:
+            speaker = turn['speaker']
+            start_times = turn['start_times']
+            start_time = max(0, start_times[0] - 0.03) # extra 3 frames to avoid noisy cut-off 
+            end_times = turn['end_times']
+            end_time = end_times[-1] + 0.03
+            turn_id = turn['turn_id']
+            wav_in = wav_dir + oname + '_' + speaker + '.wav'
+            sent_id = '{}_{}_{}'.format(filenum, speaker, str(turn_id).zfill(4))
+            if start_time < 0 or end_time < 0 or start_time >= end_time:
+                err.write(sent_id + "\n")
+                print(i, sent_id, start_time, end_time)
+                continue
+            utt_dur = end_time - start_time
+            if utt_dur < threshold:
+                end_time = start_time + threshold
+                utt_dur = end_time - start_time
+            checks.append(utt_dur)
+            wav_out = out_dir + sent_id + '.wav'
+            #fout.write('''echo "{}"\n'''.format(wav_out))
+            item = "sox {} {} trim {} ={}\n".format(wav_in, wav_out, start_time, end_time)
+            fout.write(item)
+
+    fout.close()
+    err.close()
+    print("Stats on utterance durations:")
+    print(min(checks), max(checks), np.mean(checks))
+    return
+
 def write_cmd_trim_turns(split, cmd):
     out_dir = '/s0/ttmt001/utterances/da/' + split + '/'
     err = open(split + '_err_sents.txt', 'w')
@@ -314,7 +363,8 @@ def main():
     elif step == 'trim':
         write_cmd_trim(task, split, cmd)
     elif step == 'turns':
-        write_cmd_trim_turns(split, cmd)
+        #write_cmd_trim_turns(split, cmd)
+        write_da_trim_turns(split, cmd)
     else:
         print("Need to specify step")
     exit(0)
