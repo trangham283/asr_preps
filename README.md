@@ -81,7 +81,9 @@ in vim, `*.parse`:
 * Prepare for writing to json files like in the joint-seg-da directory:
 `python get_utterance_times.py --split {dev,test} --step write_df`
 
-* 
+* NO need to run map acronym on this set! 
+
+* Prepare turn-level df for `swda_utils/process_aligned.py`: run `parse_asr_output.py --split {dev,test} --task da`
 
 --------------------------------------
 ## OLD STUFF and Error notes

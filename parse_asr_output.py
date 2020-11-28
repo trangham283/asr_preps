@@ -12,8 +12,12 @@ sw_dir = '/g/ssli/data/CTS-English/swbd_align/'
 out_dir = '/homes/ttmt001/transitory/asr_preps/asr_output/nbest/'
 
 def make_df(asr_dir, task, split):
-    ctm_file = os.path.join(asr_dir, "{}_{}".format(task, split), 
+    if task == 'pa':
+        ctm_file = os.path.join(asr_dir, "{}_{}".format(task, split), 
             "{}_{}_mapped.ctm".format(task, split))
+    else:
+        ctm_file = os.path.join(asr_dir, "{}_{}".format(task, split), 
+            "{}_{}.ctm".format(task, split))
     lm_file = os.path.join(asr_dir, "{}_{}".format(task, split), 
             "{}_{}.lmcost".format(task, split))
     ac_file = os.path.join(asr_dir, "{}_{}".format(task, split), 
@@ -130,6 +134,8 @@ def process_pa(asr_dir, split):
 # REF: dev_aligned.tsv
 def process_da(asr_dir, split):
     raw_df, acs, lms = make_df(asr_dir, 'da', split)
+    # don't skip unk
+    raw_df['word'] = raw_df.word.apply(lambda x: x if x != "<unk>" else "UNK")
     raw_df = raw_df[~raw_df.word.isin(SKIP)]
     raw_df['da_token'] = raw_df['word'] 
     # different form parsing since BERT will do the tokenization
@@ -141,7 +147,7 @@ def process_da(asr_dir, split):
         lambda row: row.start_time + offsets[row.orig_id], axis=1)
     asr_df['end_time'] = asr_df.apply(
         lambda row: row.end_time + offsets[row.orig_id], axis=1)
-    asr_df.turn_id = 
+    asr_df.turn_id = asr_df.orig_id.apply(lambda x: int(x.split("_")[-1]))
 
     outname = out_dir + '{}_asr.tsv'.format(split)
     asr_df.to_csv(outname, sep="\t", index=False)
