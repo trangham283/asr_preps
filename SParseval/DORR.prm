@@ -1,0 +1,139 @@
+##------------------------------------------##
+## Delete labels                            ##
+##    list of labels to be ignored.         ##
+##    If it is a pre-terminal label, delete ##
+##    the word along with the brackets.     ##
+##    If it is a non-terminal label, just   ##
+##    delete the brackets (don't delete     ##
+##    deildrens).                           ##
+##------------------------------------------##
+DELETE_LABEL TOP
+DELETE_LABEL S1
+DELETE_LABEL DISFL
+DELETE_LABEL TYPO
+DELETE_LABEL ,
+DELETE_LABEL :
+DELETE_LABEL -
+DELETE_LABEL ``
+DELETE_LABEL ''
+DELETE_LABEL .
+
+##------------------------------------------##
+## Empty nodes                              ##
+##    list of labels corresponding to empty ##
+##    nodes, which should be removed from   ##
+##    trees prior to evaluation             ##
+##------------------------------------------##
+EMPTY_NODE -NONE-
+EMPTY_NODE +
+
+##------------------------------------------##
+## Equivalent labels, words                 ##
+##     the pairs are considered equivalent  ##
+##     This is non-directional.             ##
+##------------------------------------------##
+EQ_LABEL ADVP PRT
+
+##------------------------------------------##
+## Edit labels                              ##
+##    list of labels to have:               ##
+##    1) internal structure removed         ##
+##    2) adjacent, same-label merged        ##
+##    and which are ignored for span        ##
+##    calculations of other constituents    ##
+##    following Charniak and Johnson (2001) ##
+##------------------------------------------##
+#EDIT_LABEL EDITED
+
+##------------------------------------------##
+## Closed class tags                        ##
+##    list of tags that are closed class    ##
+##    for head-head dependency eval         ##
+##------------------------------------------##
+CLOSED_CLASS IN
+CLOSED_CLASS TO
+CLOSED_CLASS RP
+CLOSED_CLASS POS
+
+##------------------------------------------##
+## Filled pauses (backchannel, hesitation)  ##
+##    list of words for filled pauses       ##
+##    to be treated as equivalent           ##
+##------------------------------------------##
+FILLED_PAUSE1 huh-uh
+FILLED_PAUSE1 huhuh
+FILLED_PAUSE1 uh-uh
+FILLED_PAUSE1 uhuh
+FILLED_PAUSE2 mhm
+FILLED_PAUSE2 mm-hm
+FILLED_PAUSE2 mmhm
+FILLED_PAUSE2 mm-hmm
+FILLED_PAUSE2 mmhmm
+FILLED_PAUSE2 mm-huh
+FILLED_PAUSE2 mmhuh
+FILLED_PAUSE2 mmhm
+FILLED_PAUSE2 uh-hmm
+FILLED_PAUSE2 uhhmm
+FILLED_PAUSE2 uhhuh
+FILLED_PAUSE2 uh-huh
+FILLED_PAUSE2 uhhuh
+FILLED_PAUSE2 um-hmm
+FILLED_PAUSE2 umhmm
+FILLED_PAUSE2 um-hum
+FILLED_PAUSE2 umhum
+FILLED_PAUSE3 ach
+FILLED_PAUSE3 ah
+FILLED_PAUSE3 eee
+FILLED_PAUSE3 eh
+FILLED_PAUSE3 er
+FILLED_PAUSE3 ew
+FILLED_PAUSE3 ha
+FILLED_PAUSE3 hee
+FILLED_PAUSE3 hm
+FILLED_PAUSE3 huh
+FILLED_PAUSE3 mm
+FILLED_PAUSE3 oof
+FILLED_PAUSE3 uh
+FILLED_PAUSE3 um
+
+##------------------------------------------##
+## Equivalent words                         ##
+##     the pairs are considered equivalent  ##
+##     This is non-directional.             ##
+##------------------------------------------##
+EQ_WORDS mr mister
+EQ_WORDS mr. mister
+EQ_WORDS mrs.mrs
+EQ_WORDS ms. ms
+EQ_WORDS ai are
+EQ_WORDS 'cause because
+EQ_WORDS cuz because
+EQ_WORDS 'em them
+EQ_WORDS gon going
+EQ_WORDS na to
+EQ_WORDS ta to
+EQ_WORDS ma'am mam
+EQ_WORDS 'til till
+EQ_WORDS wan want
+EQ_WORDS o.k. okay
+EQ_WORDS tee t.
+EQ_WORDS is 's
+EQ_WORDS was 's
+EQ_WORDS are 're
+EQ_WORDS am 'm
+EQ_WORDS were 're
+EQ_WORDS not n't
+EQ_WORDS will wo
+EQ_WORDS will 'll
+EQ_WORDS shall 'll
+EQ_WORDS should 'd
+EQ_WORDS would 'd
+EQ_WORDS have 've
+EQ_WORDS had 'd
+EQ_WORDS has 's
+EQ_WORDS did 'd
+EQ_WORDS does 's
+EQ_WORDS yeah yes
+EQ_WORDS had have
+EQ_WORDS lay laid
+EQ_WORDS a the

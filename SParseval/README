@@ -1,0 +1,43 @@
+To compile:
+
+> cd src
+> make all
+> cd ..
+
+SPEECHPAR.prm is the evaluation parameter file
+headInfo.txt is the head percolation file
+
+We will typically run sparseval in 'bag of head dependencies' and
+'conversation side' modes, which are -b and -c switches.  The
+exception would be if we had perfect segmentation and word alignment,
+as with the standard Switchboard dev set.  
+
+Try out these four scenarios:
+
+S=SPEECHPAR.prm
+H=headInfo.txt
+D=data
+G=$D/swbd.parse.norm
+T=$D/swbd.auto.norm
+
+src/sparseval -p $S -h $H $G $T >swbd.eval1
+
+src/sparseval -p $S -h $H -b -c $G $T >swbd.eval2
+
+G=$D/fsh_110183.a.parse.norm
+T=$D/fsh_110183.a.auto.norm
+src/sparseval -p $S -h $H -b -c $G $T >fsh.a.eval
+
+G=$D/fsh_117537.b.parse.norm
+T=$D/fsh_117537.b.auto.norm
+src/sparseval -p $S -h $H -b -c $G $T >fsh.b.eval
+
+Note that we may want to provide the evaluation with an alignment to
+see how many spurious matches our head matching scheme is finding.
+This also allows bracketing accuracy to be calculated.  Use
+src/strealign to generate the system alignment from the raw system
+alignment:
+
+A=$D/fsh_117537.b.rawalign
+src/strealign -v -p $S $G $T $A >fsh.b.align
+src/sparseval -p $S -h $H -a fsh.b.align -c $G $T >fsh.b.align.eval

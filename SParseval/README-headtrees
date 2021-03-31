@@ -1,0 +1,15 @@
+To facilitate examining the differences among the different head
+percolation schemes, there is a simple program to read in trees and
+output head-annotated trees, according to the percolation scheme
+provided.  It is in the SParseval directory and is called headtrees.
+It is called with many of the same switches: -h headinfo -p params -l
+(if list of trees).  There is only one argument, however, for a file
+of trees or a list of files of trees.
+
+This outputs labeled bracketing, so it can be a bit hard to read.  
+Each non-terminal is augmented with its lexical head:
+(NP^house (DT the) (NN dog) (NN house)) 
+You can label any given tree with Hwa-derived heads and with Charniak-derived 
+heads, and then compare.
+
+
