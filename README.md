@@ -1,6 +1,6 @@
 # Misc codes for ASR-parsing experiments
 
-Mostly for backing up code
+Mostly for backing up code from paper [Assessing the Use of Prosody in Constituency Parsing of Imperfect Transcripts (Interspeech 2021)](https://arxiv.org/abs/2106.07794)
 
 ## UPDATE:
 * added extra 3 frames before/after each turn to avoid noisy cut offs
